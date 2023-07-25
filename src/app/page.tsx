@@ -1,113 +1,306 @@
-import Image from 'next/image'
+"use client";
 
-export default function Home() {
+import { getCategories, getProcessType } from "@/utils/helper";
+import { useEffect, useState } from "react";
+import DisplayTable from "./table";
+
+const Home = () => {
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setsubCategories] = useState([]);
+  const [processTypes, setProcessTypes] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [transmissionTypes, setTransmissionTypes] = useState([]);
+  // Other Optional Validtion
+  const [IsOtherCategory, setIsOtherCategory] = useState(false);
+  const [IsOtherSubCategory, setIsOtherSubCategory] = useState(false);
+  const [IsOtherProcess, setIsOtherProcess] = useState(false);
+  const [IsOtherBrand, setIsOtherBrand] = useState(false);
+  const [IsOtherTransmission, setIsOtherTransmission] = useState(false)
+  // form values
+  const [category, setCategory] = useState("");
+  const [subCategory, setsubCategory] = useState("");
+  const [processType, setProcessType] = useState("");
+  const [brand, setBrand] = useState("");
+  const [transmissionType, setTransmissionType] = useState("");
+
+  const [formContent, setformContent] = useState({})
+
+  const addSubCategories = (catId: number) => {
+    setsubCategories(categories.filter((cat) => cat.id === catId)[0].children);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value == "Other") {
+      setIsOtherCategory(true);
+    } else if (!isNaN(+e.target.value)) {
+      const catId = +e.target.value;
+      addSubCategories(catId);
+      setIsOtherCategory(false);
+      setCategory(catId);
+    }
+  };
+
+  
+  const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value == "Other") {
+      setIsOtherSubCategory(true);
+    } else if (!isNaN(+e.target.value)) {
+      const subCatId = +e.target.value;
+      setIsOtherSubCategory(false);
+      getProcessType(subCatId).then((data)=>{
+        const {processTypes, brands, transmissionType} = data
+        setBrands(brands)
+        setProcessTypes(processTypes)
+        setTransmissionTypes(transmissionType)
+      });
+      setsubCategory(subCatId);
+      setProcessType(subCatId);
+    }
+  };
+
+  const handleProcessChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value == "Other") {
+      setIsOtherProcess(true);
+    } else if (!isNaN(+e.target.value)) {
+      setIsOtherProcess(false);
+      setsubCategory(+e.target.value);
+    }
+  };
+
+  const handleChangeBrand = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value == "Other") {
+      setIsOtherBrand(true);
+    } else if (!isNaN(+e.target.value)) {
+      setIsOtherBrand(false);
+      setBrand(+e.target.value);
+    }
+  };
+
+  const handleTransmssionTypeChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    if (e.target.value == "Other") {
+      setIsOtherTransmission(true);
+    } else if (!isNaN(+e.target.value)) {
+      setIsOtherTransmission(false);
+      setTransmissionType(+e.target.value);
+    }
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    setformContent({
+      category,
+      subCategory,
+      processType,
+      brand,
+      transmissionType,
+    });
+
+    console.table({
+      category,
+      subCategory,
+      processType,
+      brand,
+      transmissionType,
+    })
+  };
+
+  useEffect(() => {
+    getCategories().then((response) => {
+      setCategories(response.data.categories);
+    });
+    return () => {
+      setCategories([]);
+    };
+  }, []);
+
+  // reset inputs on data changed
+  useEffect(() => {
+    setProcessTypes([]);
+    setBrands([]);
+    setTransmissionTypes([]);
+  }, [subCategories]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+      <h4><b>Mazaady</b> First Technical assessment (1) </h4>
+      <code><b>95% of code are pure, no third party library</b></code>
+      <form onSubmit={handleFormSubmit}>
+        <label
+          htmlFor="main-cat"
+          className="block mb-2 text-sm font-medium text-gray-900 required"
+        >
+          Main Category
+        </label>
+        <select
+          onChange={handleCategoryChange}
+          id="main-cat"
+          className="select-form"
+        >
+          <option defaultValue={"DEFAULT"} selected>
+            Choose a category
+          </option>
+
+          {categories &&
+            categories.map((cat, index) => (
+              <option key={index} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          <option value="Other">Other</option>
+        </select>
+
+        {IsOtherCategory ? (
+          <input
+          onChange={(e)=>setCategory(e.target.value)}
+            type="text"
+            id="otherCat"
+            className="border mt-2 border-gray-300 text-gray-900 text-sm  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Enter your catagory e.g: cars , motorcycles & accessories"
+            required
+          />
+        ) : (
+          <></>
+        )}
+
+        <label
+          htmlFor="sub-cat"
+          className="block mb-2 text-sm font-medium text-gray-900 required mt-5"
+        >
+          Sub Category
+        </label>
+        <select
+          onChange={handleSubCategoryChange}
+          id="sub-cat"
+          className="select-form"
+        >
+          <option defaultValue={"DEFAULT"} selected>
+            Choose a sub category
+          </option>
+          {subCategories.map((subCat, index) => (
+            <option key={index} value={subCat.id}>
+              {subCat.name}
+            </option>
+          ))}
+          <option value="Other">Other</option>
+        </select>
+        {IsOtherSubCategory ? (
+          <input
+          onChange={(e)=>setsubCategory(e.target.value)}
+            type="text"
+            id="OtherSubCat"
+            className="border mt-2 border-gray-300 text-gray-900 text-sm  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Enter your sub catagory e.g: Cars"
+            required
+          />
+        ) : (
+          <></>
+        )}
+
+        <label
+          htmlFor="process-type"
+          className="block mb-2 text-sm font-medium text-gray-900 required mt-5"
+        >
+          Process Type
+        </label>
+        <select
+          onChange={handleProcessChange}
+          id="process-type"
+          className="select-form mb-2"
+        >
+          <option defaultValue={"DEFAULT"} selected>
+            Choose a process
+          </option>
+          {processTypes.map((process, index) => (
+            <option key={index} value={process.id}>
+              {process.name}
+            </option>
+          ))}
+
+          <option value="Other">Other</option>
+        </select>
+        {IsOtherProcess ? (
+          <input
+            type="text"
+            id="OtherProcess"
+            onChange={(e)=>setProcessType(e.target.value)}
+            className="border mt-2 border-gray-300 text-gray-900 text-sm  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Enter your Process type e.g: Sell, Buy etc.."
+            required
+          />
+        ) : (
+          <></>
+        )}
+        <label
+          htmlFor="brand"
+          className="block mb-2 text-sm font-medium text-gray-900 mt-5"
+        >
+          Brand
+        </label>
+        <select onChange={handleChangeBrand} id="brand" className="select-form">
+          <option defaultValue={"DEFAULT"}>Choose a brand</option>
+          {brands.map((brand, index) => (
+            <option key={index} value={brand.id}>
+              {brand.name}
+            </option>
+          ))}
+          <option value="Other">Other</option>
+        </select>
+
+        {IsOtherBrand ? (
+          <input
+            type="text"
+            onChange={(e)=>setBrand(e.target.value)}
+            id="Other Brand"
+            className="border mt-2 border-gray-300 text-gray-900 text-sm  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Enter your Process type e.g: Apple, BMW etc.."
+            required
+          />
+        ) : (
+          <></>
+        )}
+
+        <label
+          htmlFor="transmission"
+          className="block mb-2 text-sm font-medium text-gray-900 mt-5"
+        >
+          Transmission Type
+        </label>
+        <select
+          onChange={handleTransmssionTypeChange}
+          id="transmission"
+          className="select-form"
+        >
+          <option defaultValue={"DEFAULT"}>Choose a type</option>
+          {transmissionTypes.map((type, index) => (
+            <option key={index} value={type.id}>
+              {type.name}
+            </option>
+          ))}
+          <option value="Other">Other</option>
+        </select>
+        {IsOtherTransmission ? (
+          <input
+            type="text"
+            onChange={(e)=>setTransmissionType(e.target.value)}
+            id="Other Brand"
+            className="border mt-2 border-gray-300 text-gray-900 text-sm  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Enter your Process type e.g: Apple, BMW etc.."
+            required
+          />
+        ) : (
+          <></>
+        )}
+        <div className="controller flex items-center justify-center ">
+          <button type="submit" className="p-2 m-10 bg-green-100">
+            Submit
+          </button>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      </form>
+     <DisplayTable data={formContent} />
     </main>
-  )
-}
+  );
+};
+
+export default Home;

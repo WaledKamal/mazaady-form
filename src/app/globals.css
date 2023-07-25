@@ -17,11 +17,20 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  
+}
+
+form{
+  width: 50%;
+}
+
+.select-form{
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #000;
+}
+
+.required:after {
+  content:" *";
+  color: red;
 }
