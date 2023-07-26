@@ -1,5 +1,11 @@
 "use client";
 
+  /**
+   * all forms fileds here done by pure bare HTML 
+   * we can use something like formik, shaden/ui, chekra || matrial ui
+   * not all types seted, need to some agreement with backend
+   */
+
 import { getCategories, getProcessType } from "@/utils/helper";
 import { useEffect, useState } from "react";
 import DisplayTable from "./table";
@@ -121,6 +127,7 @@ const Home = () => {
     setBrands([]);
     setTransmissionTypes([]);
   }, [subCategories]);
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
